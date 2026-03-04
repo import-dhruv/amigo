@@ -8,6 +8,7 @@ import {
   Lightbulb,
   ChevronDown,
   PenLine,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -16,10 +17,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { ChatMode } from "@/lib/api";
 
-type ChatMode = "normal" | "deepthink";
+type ChatBarProps = {
+  onSend: (message: string, mode: ChatMode) => void;
+  isLoading?: boolean;
+};
 
-export function ChatBar() {
+export function ChatBar({ onSend, isLoading = false }: ChatBarProps) {
   const [input, setInput] = useState("");
   const [mode, setMode] = useState<ChatMode>("normal");
 
@@ -118,10 +123,20 @@ export function ChatBar() {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (input.trim()) {
+              onSend(input.trim(), mode);
+              setInput("");
+            }
+          }
+        }}
         placeholder="Ask anything..."
+        disabled={isLoading}
         className={cn(
           "flex-1 min-w-0 bg-transparent px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500",
-          "focus:outline-none"
+          "focus:outline-none disabled:opacity-70"
         )}
         aria-label="Chat input"
       />
@@ -143,14 +158,26 @@ export function ChatBar() {
       <button
         type="button"
         aria-label="Send message"
+        disabled={isLoading || !input.trim()}
+        onClick={() => {
+          if (input.trim()) {
+            onSend(input.trim(), mode);
+            setInput("");
+          }
+        }}
         className={cn(
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
           "bg-linear-to-r from-[#9D50BB] to-[#6E48AA] text-white",
           "shadow-[0_0_20px_-2px_rgba(157,80,187,0.5)]",
-          "transition-all hover:opacity-90 hover:shadow-[0_0_24px_-2px_rgba(157,80,187,0.6)]"
+          "transition-all hover:opacity-90 hover:shadow-[0_0_24px_-2px_rgba(157,80,187,0.6)]",
+          "disabled:opacity-50 disabled:cursor-not-allowed"
         )}
       >
-        <Send className="h-4 w-4" strokeWidth={2} />
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
+        ) : (
+          <Send className="h-4 w-4" strokeWidth={2} />
+        )}
       </button>
     </div>
   );

@@ -1,0 +1,1 @@
+"""API Gateway - Normalized endpoints."""
